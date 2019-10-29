@@ -43,7 +43,7 @@ perl concur.pl -i alignment.bam -g hg38 -o project_name
 
 ### Parameters
 
-The following run-time parameters are available
+The following parameters are available
 
 | Parameter | Description
 | :---: | ---
@@ -51,7 +51,6 @@ The following run-time parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*, input file name is used by default]
-| :---: | ---
 | -h \-\-help | Help message & quit
 | -m \-\-man | Help message & quit
 | -v \-\-version | Version message & quit
