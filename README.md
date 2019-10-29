@@ -96,7 +96,7 @@ This will create two files for mouse: data/mm10.bg.txt and data/mm10.bed.gz, and
 
 ### Version
 
-The current version is 1.0. For other the versions, see the [tags on this repository](https://github.com/your/project/tags). 
+The current version is 0.9. For other the versions, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ### Authors
 
