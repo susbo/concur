@@ -1,6 +1,3 @@
----
-output: pdf_document
----
 # CONCUR
 
 CONCUR (**Co**do**n** **c**o**u**nts from **R**ibo-seq) is a tool for calculating codon usage from Ribo-seq data.
@@ -50,9 +47,10 @@ The following parameters are available
 
 | Parameter | Description
 | :---: | ---
-| -i | Input bam file.
-| -g | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*).
-| -o | Output file name. A folder will be created with the specified output file name.
+| -i \-\-input | Input bam file [*mandatory*]
+| -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
+| -o \-\-out | Output folder name [*mandatory*]
+| -n \-\-name | Output file name [*optional*, input file name is used by default]
 
 ### Installing Additional Genomes
 
@@ -92,7 +90,7 @@ Next, run the installation tool. The `--pcg` flag is used to extract the coding 
 perl concur_install_genome.pl --gtf Musmus10.gtf.gz --fasta Musmus10.pcg.fa.gz --short mm10 --pcg
 perl concur_install_genome.pl --gtf Homsap38.gtf.gz --fasta Homsap38.pcg.fa.gz --short hg38 --pcg
 ```
-The `--pcg` tag will assume that there is a string in the "CDS:61-1041" format in each fasta header. The start and end position of the coding sequence is retrieved from this string and is used to extract the coding sequence from the full transcript sequence. Coding sequences where the length is not a multiple of three nucleotides will not be used.
+The `--pcg` tag will assume that there is a string in the "CDS:61-1041" format in each fasta header line. The start and end position of the coding sequence is retrieved from this string and is used to extract the coding sequence from the full transcript sequence. Coding sequences where the length is not a multiple of three nucleotides will not be used.
 
 This will create two files for mouse: data/mm10.bg.txt and data/mm10.bed.gz, and two files for human: data/hg38.bg.txt and data/hg38.bed.gz.
 
