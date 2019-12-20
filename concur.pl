@@ -17,7 +17,7 @@ GetOptions("version" => sub { VersionMessage() }
           ) or pod2usage(2);
 
 pod2usage(2) if $help or $man;
-unless ($input && $genome && $out) { pod2usage("Missing mandatory arguments."); pod2usage(2); }
+unless ($input && $genome && $out) { pod2usage("ERROR: Missing mandatory arguments.\n"); pod2usage(2); }
 unless ($threads) { $threads=1; }
 
 if (!$name) { # Set name to input file name by default.
@@ -625,31 +625,53 @@ concur.pl -i alignment.bam -g genome -o output_folder [-n output_name]
 
  Mandatory arguments:
    -i --input       Input bam file
-   -g --genome      Reference genome [hg38, hg19, mm10, mm9]
+   -g --genome      Reference genome [hg38, hg19, mm10, mm9, sc3, rn9]
    -o --out         Output folder name
    -n --name        Output file name [default: input file name]
  Additional options:
-   -h --help        Help message & quit
-   -m --man         Help message & quit
-   -v --version     Version message & quit
+   -h --help        Print help message and exit
+   -m --man         Print help message and exit
+   -v --version     Print version and exit
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-help>
+=item B<--input>
 
-Print a brief help message and exits.
+Input bam file
 
-=item B<-man>
+=item B<--genome>
 
-Prints the manual page and exits.
+Reference genome [hg38, hg19, mm10, mm9, sc3, rn9]
+
+=item B<--out>
+
+Output folder name
+
+=item B<--name>
+
+Output file name [default: input file name]
+
+=item B<--help>
+
+Print a brief help message and exit
+
+=item B<--man>
+
+Print a brief help message and exit
+
+=item B<--version>
+
+Print version message and exit
 
 =back
 
 =head1 DESCRIPTION
 
-B<CONCUR> will read the given input file(s) and do someting
-useful with the contents thereof.
+B<CONCUR> will read the given input bam file, detect the best frame
+for identifying the A-site, and return a table with codon usage.
+
+Please see https://github.com/susbo/concur for more details.
 
 =cut
