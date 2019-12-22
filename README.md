@@ -10,6 +10,8 @@ These instructions will allow you to run CONCUR on your computer. CONCUR is run 
 
 You will need [Perl](https://www.perl.org) and [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) to be installed in your system.
 
+In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the "--noR" parameters.
+
 The following organisms are pre-installed from the Gencode [https://www.gencodegenes.org] project:
 
 * Human - *hg38*, *hg19*
@@ -51,6 +53,7 @@ The following parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*, input file name is used by default]
+| \-\-noR | Run without creating figures using R
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit
 | -v \-\-version | Print version and quit
@@ -107,7 +110,7 @@ The current version is 0.9. For other the versions, see the [tags on this reposi
 
 ### License
 
-This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
+This project is licensed under the GNU AGPLv3 License - see the [LICENSE.txt](LICENSE.txt) file for details.
 
 ### Citation
 

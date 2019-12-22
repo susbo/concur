@@ -1,5 +1,20 @@
 #!/bin/perl -w
 
+#    CONCUR: quick and robust calculation of codon usage from ribosome profiling data
+#    Copyright (C) 	2019	Susanne Bornelöv
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, version 3
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 use strict;
 use Getopt::Long;
 use Pod::Usage;
@@ -13,12 +28,11 @@ GetOptions("version" => sub { VersionMessage() }
           , 'genome=s' => \my $genome
           , 'out=s' => \my $out
           , 'name=s' => \my $name
-          , 'threads=s' => \my $threads
+          , 'noR' => \my $noR
           ) or pod2usage(2);
 
 pod2usage(2) if $help or $man;
 unless ($input && $genome && $out) { pod2usage("ERROR: Missing mandatory arguments.\n"); pod2usage(2); }
-unless ($threads) { $threads=1; }
 
 if (!$name) { # Set name to input file name by default.
 	my @tmp = split "/",$input;
@@ -34,7 +48,7 @@ print "Input file: $input\n";
 print "Genome: $genome\n";
 print "Output folder: $out\n";
 print "Output file name: $name\n";
-print "Number of threads: $threads\n";
+print "Run without R: "; if ($noR) { print "TRUE"; } else { print "FALSE"; } print "\n";
 print "##################\n";
 
 #### Running CONCUR ####
@@ -44,42 +58,22 @@ mkdir $tmp;
 
 # Run each subroutine
 GenomeToTranscript();
-#PeriodicityAtTSS();
-#PredictFrame();
-#CodonFrequency();
-#CodonFrequency2();
-#PlotCodonFrequency("codon_frequency/$name","correlation");
-#CorrelateToBest();
-#PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected");
-#FinalCodonFrequency();
-#Validate();
+PeriodicityAtTSS();
+PredictFrame();
+CodonFrequency();
+CodonFrequency2();
+PlotCodonFrequency("codon_frequency/$name","correlation") unless $noR;
+CorrelateToBest();
+PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $noR;
+FinalCodonFrequency();
+Validate() unless $noR;
 
 sub GenomeToTranscript {
 	print "Mapping genomic reads to transcripts...\n";
-
-	# Convert alignment bam to bed format.
 	mkdir "$tmp/genome_to_transcript";
-if (0) {
-	open IN,"samtools view $input |";
-	open OUT,"| gzip -c > $tmp/genome_to_transcript/$name.bed.gz";
-	while (my $row = <IN>) {
-		chomp $row;
-		my @line = split "\t",$row;
-		next if $line[5] =~ /[NID]/; # Reads with insertions and deletions are skipped.
-		my ($pos,$chr) = ($line[3]-1,$line[2]);
-		next if $chr eq "chrM" or $chr eq "MT"; # Mitochondrial chromosome is skipped.
-		my $length = length($line[9]);
-		print OUT "$chr\t$pos\t";
-		print OUT "".($pos+$length)."\t";
-		print OUT "$line[0]\t$line[9]\n";
-	}
-	close IN;
-	close OUT;
-}
-	# Extract reads with any overlap to exons
-#	SystemBash("paste <(bedtools bamtobed -i $input -bed12) <(samtools view $input | cut -f10) | gzip -c > $tmp/genome_to_transcript/$name.bed.gz");
-#	SystemBash("paste <(bedtools bamtobed -i $input | awk -v OFS=\"\\t\" '\$6==\"-\" {\$3=\$3-12; \$2=\$3-1} \$6==\"+\" {\$2=\$2+12; \$3=\$2+1} {print}' | cut -f1-4,6) <(samtools view $input | cut -f10) | awk -v OFS=\"\\t\" '{print \$1,\$2,\$3,\$4,\$6,\$5}' | gzip -c > $tmp/genome_to_transcript/$name.bed.gz");
-	SystemBash("paste <(bedtools bamtobed -i $input | cut -f1-4,6) <(samtools view $input | cut -f10) | awk -v OFS=\"\\t\" '\$6==\"-\" {\$2=\$3-length(\$5)} \$6==\"+\" {\$3=\$2+length(\$5)} {print \$1,\$2,\$3,\$4,\$6,\$5}' | gzip -c > $tmp/genome_to_transcript/$name.bed.gz");
+
+	# Extract reads with any overlap to exons; consider start for reads on + strand, and end for reads on - strand.
+	SystemBash("paste <(bedtools bamtobed -i $input | cut -f1-4,6) <(samtools view $input | cut -f10) | awk -v OFS=\"\t\" '\$5==\"-\" {\$2=\$3-length(\$6)} \$5==\"+\" {\$3=\$2+length(\$6)} {print \$1,\$2,\$3,\$4,\$6,\$5}' | gzip -c > $tmp/genome_to_transcript/$name.bed.gz");
 	SystemBash("bedtools intersect -a <(zcat $tmp/genome_to_transcript/$name.bed.gz) -b <(zcat data/$genome.bed.gz) -wo -split | gzip -c > $tmp/genome_to_transcript/$name.intersect.gz");
 }
 
@@ -89,16 +83,12 @@ sub PeriodicityAtTSS {
 	mkdir "$tmp/periodicity";
 	my $file = "$tmp/genome_to_transcript/$name.intersect.gz";
 	foreach my $len (20..50) {
-     SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len' | awk '{if (\$11==\"+\") shift=\$10+\$2-\$7+12; else shift=\$10+\$8-\$3+12; map[\$9]++;  if (shift<13 && shift>-13 && map[\$9]<11) print shift;}' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
-#     SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len' | awk '{if (\$11==\"+\") shift=\$10+\$2-\$7+12; else shift=\$10+\$8-\$3+12; map[\$9]++;  if (shift<20 && shift>-20 && map[\$9]<11) print shift;}' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
-#		SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len' | awk '{if (\$11==\"+\") print \$10+\$2-\$7+12; else print \$10+\$8-\$3+12;}' | awk '\$1<100' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
-#		SystemBash("zcat $file | awk -v len=\"$len\" '\$11==\"+\" && length(\$5)==len' | awk '{print \$10+\$2-\$7+12}' | awk '\$1<100' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
-#		SystemBash("zcat $file | awk -v len=\"$len\" '\$11==\"-\" && length(\$5)==len' | awk '{print \$10+\$8-\$3+12}' | awk '\$1<100' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
-## TODO: use column 14 instead of length(5)?
+     SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len && \$6==\$12' | awk '{if (\$12==\"+\") shift=\$11+\$2-\$8+12; else shift=\$11+\$9-\$3+12; if (shift<13 && shift>-13) print shift;}' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
 	}
 }
 
 # Predict reading frame for each read length
+# This function creates an initial guess of the best shift for each read length and frame
 sub PredictFrame {
 	print "Predicting frame per read length...\n";
 	open OUT,">$out/$name.predicted_frame.txt";
@@ -106,7 +96,7 @@ sub PredictFrame {
 	my $max_i;
 	my $max_N = 0;
 
-	print OUT "Len\tFrame\tShift\tScoreS\tReads\tFrameW\tScoreW\tCountsW\tFrameT\tScoreT\tCountsT\tScore\tSelected\n";
+	print OUT "Length\tShift\tScores\tDiffs\tReads\tSelected\n";
 
 	foreach my $i (20..50) {
 		my @counts;	# Counts per position relative to the TIS
@@ -117,93 +107,41 @@ sub PredictFrame {
 			$counts[$2+20] += $1;
 		}
 		close IN;
-		my @total = (0,0,0);	# Counts per reading frame in TIS region
-		my @window = (0,0,0);	# Most abundant frame per three nucleotides
+		my @total = (0,0,0);	# Counts per reading frame in TIS region -- READS column
 		foreach my $j (-20..99) {
 			$total[$j%3] += $counts[$j+20]//0;
 			my $b = $j;
 			$b = $j+1 if (($counts[$b+20]//0) < ($counts[$j+1+20]//0));
 			$b = $j+2 if (($counts[$b+20]//0) < ($counts[$j+2+20]//0));
-			$window[$b%3]++ unless (($counts[$b+20]//0) < 4);
 		}
 		print OUT "$i\t"; # Fragment length
-
-		my $frame_window = IndexOfMax(@window); # Best frame according to sliding window max
-		my $frame_total = IndexOfMax(@total); # Best frame according to total counts
-
 		my $N = 0; $N += $_ for @total;	# Total number of reads
-
-		my $predicted_frame = "-"; my $predicted_shift = "-";
-
-		my @shift_score = (0)x3;
-		my @shift_diff = (0)x3;
-		my @reads = (0)x40;
+		my @shift_score = (0)x3; # SCORES column
+		my @shift_diff = (0)x3; # DIFFS column
 		my @predicted_shift = ("-","-","-");
-		# Make a frame prediction if sliding window and total agree and total count is greater than threshold.
-#		if ($frame_window == $frame_total && $N>10000) {
+		# Make a frame prediction if total count is above 1000 reads.
 		if ($N>1000) {
-#				$frame = $frame_total;
-#				foreach my $j (-16..16) {	# Find predicted shift as first local maxima position at predicted frame
-#			foreach my $j (-17..9) {	# Find predicted shift as first local maxima position at predicted frame
 			foreach my $j (-6..6) {	# Find predicted shift as first local maxima position at predicted frame
 				my $frame = $j%3;
-#					print "$i\t$j\tif ((".($counts[$j+20]//0).") > (".($counts[$j+20-3]//0).") && (".($counts[$j+20]//0).") > (".($counts[$j+20+3]//0)."))\t";
-#$shift_score = Round(($counts[$j+20]//0) / (($counts[$j+20-3]//0) + ($counts[$j+20]//0) + ($counts[$j+20+3]//0) + 1),3);
-#my $shift_score2 = ($counts[$j+20]//0) - ($counts[$j+20-3]//0)/2 - ($counts[$j+20+3]//0)/2;
-#				$reads[$j+20] = $shift_score2;
-#print "[$shift_score | $shift_score2]\t";
-				if ($total[$frame] > 1000 && ($counts[$j+20]//0) > ($counts[$j+20-3]//0) && ($counts[$j+20]//0) > ($counts[$j+20+3]//0)) { # Only consider local maxima
-#print "*";
-					my $score = Round(($counts[$j+20]//0) / (($counts[$j+20-3]//0) + ($counts[$j+20]//0) + ($counts[$j+20+3]//0)+1),3);
-#					my $diff = ($counts[$j+20]//0) - ($counts[$j+20-3]//0)/2 - ($counts[$j+20+3]//0)/2;
+				if ($total[$frame] > 1000 && ($counts[$j+20]//0) > ($counts[$j+20-3]//0) && ($counts[$j+20]//0) > ($counts[$j+20+3]//0)) { # Only consider local maxima (2.1)
+					my $score = Round(($counts[$j+20]//0) / (($counts[$j+20-3]//0) + ($counts[$j+20]//0) + ($counts[$j+20+3]//0)+1),3); # Use for second condition in 2.1.
 					my $diff = Round(($counts[$j+20]//0)*2 - ($counts[$j+20-9]//0)/9 - ($counts[$j+20-6]//0)/3 - ($counts[$j+20-3]//0) - ($counts[$j+20+3]//0)/3 - ($counts[$j+20+6]//0)/9 - ($counts[$j+20+9]//0)/9 ,0);
-#					my $diff = ($counts[$j+20]//0) - ($counts[$j+20-3]//0) - ($counts[$j+30+3]//0);
-#					if ($score > $shift_score[$frame]) { # Only replace it better!
 					if ($diff >= $shift_diff[$frame] || $shift_diff[$frame] eq "-") { # Only replace it better or not set yet.
+						# Keep track of best score and difference for the predicted shift.
 						$shift_score[$frame] = $score;
 						$shift_diff[$frame] = $diff;
 						$predicted_shift[$frame] = $j;
-#						last;
 					}
 				}
-#print "\n";
 			}
 		}
-#		print "All Reads: @reads\n";
-#		$predicted_shift = IndexOfMax(@reads)-20;
-#		print "Best shift: $predicted_shift\n";
-#		$shift_score = Round(($counts[$predicted_shift+20]//0) / (($counts[$predicted_shift+20-3]//0) + ($counts[$predicted_shift+20]//0) + ($counts[$predicted_shift+20+3]//0)+1),3);
-#		$predicted_shift = "-" if $predicted_shift == "-20";
-#print "\n";
-		if ($N == 0) { $frame_window = "-"; $frame_total = "-"; }
-		print OUT "$predicted_frame\t",join(",",@predicted_shift),"\t",join(",",@shift_score),"\t",join(",",@shift_diff)."\t";
-		print OUT "$N\t";
+		print OUT "",join(";",@predicted_shift),"\t",join(";",@shift_score),"\t",join(";",@shift_diff)."\t",join(";",@total)."\t";
 
-		my $score_window = MaxPercent(@window);
-		print OUT "$frame_window\t$score_window\t";
-		print OUT join(",",@window)."\t";
-
-#		my $score_total = MaxPercent(@total);
-#		print OUT "$frame_total\t$score_total\t";
-		my @score_total = (Round($total[0]/($N+1),3),Round($total[1]/($N+1),3),Round($total[2]/($N+1),3));
-		print OUT "$frame_total\t",join(",",@score_total)."\t";
-		print OUT join(",",@total),"\t";
-
-		my $total_score = Round(1*$score_window*$score_total[0],3);
-		print OUT "$total_score\t";
-
-		my $total_score2 = Round(1*$score_window*$score_total[0]*$shift_score[IndexOfMax(@shift_score)],3);
-		print OUT "$total_score2\t";
-
-#		my $score = 0;
-#		$score += 1 if $score_window > 0.6 && $score_total > 0.4 && $N>=5000 && $shift_score[IndexOfMax(@shift_score)] > 0.5;
 		my @score = (0,0,0);
 		foreach my $f (0..2) {
-#			$score[$f] = 1 if $shift_score[$f] > 0.5 && $total[$f]>1000 && $score_total[$f]>0.15;
-			$score[$f] = 1 if $shift_score[$f] > 0.5 && $total[$f]>1000 && $score_total[$f]>0;
+			$score[$f] = 1 if $shift_score[$f] > 0.5 && $total[$f]>1000;
 		}
-		
-		print OUT "",join(",",@score)."\n";
+		print OUT "",join(";",@score)."\n";
 	}
 	close OUT;
 }
@@ -214,23 +152,19 @@ sub CodonFrequency {
 	# Retrieve codon frequencies
 	mkdir "$tmp/codon_frequency";
 
+	# Start by reading all predicted shifts
 	my @all_shifts;
 	open IN,"$out/$name.predicted_frame.txt";
 	<IN>; # Skip header line
 	while (my $row = <IN>) {
 		chomp $row;
 		my @line = split "\t",$row;
-		my @scores = split ",",$line[$#line];
-		my @shift = split ",",$line[2];
-print "$line[0]\t";
+		my @shift = split ";",$line[1]; # Predicted best shift
+		my @selected = split ";",$line[$#line]; # Selected or not?
 		foreach my $i (0..2) {
-			$shift[$i] = "-" if $scores[$i] == 0;
+			$shift[$i] = "-" if $selected[$i] == 0;
 			$all_shifts[$line[0]][$i] = $shift[$i];
-print "$shift[$i]\t";
 		}
-print "\n";
-#		$line[2] = "-" if $line[$#line] == 0;
-#		$all_shifts[$line[0]] = $line[2];
 	}
 	close IN;
 
@@ -254,8 +188,10 @@ print "\n";
 
 		# Retrieve data
 		# Change here if additional columns are added
-		my ($a_chr,$a_start,$a_end,$a_id,$a_seq) = @line[0..4];
-		my ($b_chr,$b_start,$b_end,$b_transcript,$b_shift,$b_strand,$b_gene,$b_frame,$b_overlap) = @line[5..$#line];
+		my ($a_chr,$a_start,$a_end,$a_id,$a_seq, $a_strand) = @line[0..5];
+		my ($b_chr,$b_start,$b_end,$b_transcript,$b_shift,$b_strand,$b_gene,$b_frame,$b_overlap) = @line[6..$#line];
+
+		next if $a_strand ne $b_strand; # Only consider strand-specific matches.
 
 		# Calculate position in transcript
 		my $pos;
@@ -277,11 +213,7 @@ print "\n";
 		# Determine read length and check if frame is correct for read length
 		my $length = length($a_seq);	
 		my $pred_shift = $all_shifts[$length][$frame_pos]//"-"; # If length is not in predicted_frame file
-#		if (!defined($pred_shift)) {
-#			print "length: $length, frame_pos: $frame_pos\n";
-#		}
 		next if $pred_shift eq "-";
-#		next unless $frame_pos eq ($pred_shift%3);	# Skip if not correct frame for length
 
 		if ($b_strand eq "-") {
 			$a_seq = rev($a_seq);
@@ -321,7 +253,6 @@ print "\n";
 		my $selected;
 		$selected = rand @prev_frame; # Select random mapping if several alternatives
 
-#		print OUT "$prev_seq\t$prev_gene\t$prev_strand\t$prev_pos[$selected]\t$prev_frame[$selected]\t$prev_id";
 		foreach my $c (@{ $prev_codon[$selected] }) {
 			print OUT "$c\t";
 		}
@@ -402,7 +333,6 @@ sub CorrelateToBest {
 		my $name = shift @list;
 		foreach my $i (0..$#list) {
 			$cor{$name}{$names[$i]} = $list[$i];
-#print "$name vs $names[$i] = $list[$i]\n";
 		}
 	}
 
@@ -417,10 +347,8 @@ sub CorrelateToBest {
 		my $score = 0;
 		foreach my $i (0..$shifts[$pos]-1) { # Check as many as there are read lenths are this position
 			my $key = $sorted[$i];
-#			print "$key ".Round($cor{$n}{$key},2)." ";
 			$score++ if $key =~ /\.$pos$/;
 		}
-#		print " ".($score-1)."/".($shifts[$pos]-1)."\n"; # How many of the best correlating read lengths SHOULD correlate?
 		if ($score >= ($max_score[$pos]//0)) {
 			if ($cor{$best_read[$pos]//"BG"}{"BG"} > $cor{$n}{"BG"} || $score > $max_score[$pos]//0) { # Only replace ties if correlation is lower
 				$max_score[$pos] = $score;
@@ -459,7 +387,7 @@ sub CorrelateToBest {
 		print OUT "\t".Round($cor_score{$read},3);
 		print OUT "\n";
 		$flag{$read} = "";
-		if ($cor_score{$read} < 0) { $exclude{$read}++; $flag{$read} .= "BG,"; }
+		if ($cor_score{$read} < 0) { $exclude{$read}++; $flag{$read} .= "BG,"; } # Filter 2.2.1
 	}
 	print OUT "MEAN";
 	foreach my $pos (1..9) {
@@ -482,7 +410,7 @@ sub CorrelateToBest {
 		print OUT "$read\t".Round($cor_score{$read},3);
 		my ($scoreSum,$maxSum) = (0,0);
 		foreach my $pos (5,6) {
-			if (!defined($scores{$pos}{$read})) {
+			if (!defined($scores{$pos}{$read})) { # This should not happen...
 				$flag{$read} .= "MISSING$pos,";
 				$exclude{$read}++;
 				next;
@@ -494,25 +422,36 @@ sub CorrelateToBest {
 				$cor_to_best[$i] = $cor{"$read.$i"}{"$best.$pos"}//0;
 			}
 			my @order = sort { $cor_to_best[$b] <=> $cor_to_best[$a] } (1..9);
+
+			my @cor_to_best_opp; # Check that is does not correlate better to another position from best
+			foreach my $i (1..9) {
+				$cor_to_best_opp[$i] = $cor{"$read.$pos"}{"$best.$i"}//0;
+			}
+			my @order_opp = sort { $cor_to_best_opp[$b] <=> $cor_to_best_opp[$a] } (1..9);
+
 			print OUT "\t[$best]$pos==$order[0],$order[1],$order[2]";
+			print OUT "\t[$read]$order_opp[0],$order_opp[1],$order_opp[2]==$pos";
 			print OUT "\t$scores{$pos}{$read}/$max_score[$pos]";
 			$scoreSum += $scores{$pos}{$read};
 			$maxSum += $max_score[$pos];
-#			print "\t$scores{$pos}{$read}/$max_score[$pos]\tcor($pos,$names[$#names])=".Round($cor{"$read.$pos"}{"BG"},3)."\tcor($pos,$best_read[$pos])=".Round($cor{"$read.$pos"}{$best_read[$pos]},3)."\tcor($best_read[$pos],BG)=".Round($cor{$best_read[$pos]}{"BG"},3);
-			if ($scores{$pos}{$read} < $max_score[$pos]*0.5) {
+			if ($scores{$pos}{$read} < $max_score[$pos]*0.5) { # Filter 2.2.3
 				$flag{$read} .= "SCORE$pos,";
-#				$exclude{$read}++;
+				$exclude{$read}++;
 			}
-			if ($cor{"$read.$pos"}{"BG"} > $cor{"$read.$pos"}{$best_read[$pos]}) {
+			if ($cor{"$read.$pos"}{"BG"} > $cor{"$read.$pos"}{$best_read[$pos]}) { # Not used currently
 				$flag{$read} .= "COR$pos,";
 #				$exclude{$read}++;
 			}
-			if ($order[0] != $pos) {
+			if ($order[0] != $pos) { # Filter 2.2.2
 				$flag{$read} .= "ORDER$pos,";
 				$exclude{$read}++;
 			}
+			if ($order_opp[0] != $pos) { # Similar to 2.2.2, not used currently
+				$flag{$read} .= "OPP$pos,";
+#				$exclude{$read}++;
+			}
 		}
-		print OUT "\t$scoreSum/$maxSum";
+		print OUT "\t$scoreSum/$maxSum"; # Not used currently (combines the score for P and A sites)
 		if ($scoreSum/$maxSum < 0.5) {
 			$flag{$read} .= "SCORE,";
 #			$exclude{$read}++;
@@ -581,7 +520,7 @@ sub Validate {
 	SystemBash("Rscript --vanilla validate.R $out $name $genome");
 }
 
-# Make sure that Bash is used on Ubuntu systems.
+# This function makes sure that Bash is used on Ubuntu systems.
 sub SystemBash {
   my @args = ( "bash", "-c", shift );
   system(@args);
@@ -596,21 +535,6 @@ sub VersionMessage {
 # Round x to y decimals.
 sub Round {
 	return int($_[0]*10**$_[1]+0.5)/10**$_[1];
-}
-
-# How common is the most common position?	
-sub MaxPercent {
-	my @sorted = sort {$a <=> $b} @_;
-	my $sum = $sorted[0]+$sorted[1]+$sorted[2];
-	return 0 if $sum == 0;
-	return Round($sorted[2]/$sum,3);
-}
-
-# Position of maximum value in array.
-sub IndexOfMax {
-	my $index = 0;
-	for my $i (0 .. $#_) { $index = $i if  $_[$index] < $_[$i]; }
-	return $index;
 }
 
 __END__
@@ -628,6 +552,7 @@ concur.pl -i alignment.bam -g genome -o output_folder [-n output_name]
    -g --genome      Reference genome [hg38, hg19, mm10, mm9, sc3, rn9]
    -o --out         Output folder name
    -n --name        Output file name [default: input file name]
+	--noR            Don't run any function that require R [default: FALSE]
  Additional options:
    -h --help        Print help message and exit
    -m --man         Print help message and exit
@@ -652,6 +577,10 @@ Output folder name
 =item B<--name>
 
 Output file name [default: input file name]
+
+=item <--noR>
+
+Don't run any function that require R [default: FALSE]
 
 =item B<--help>
 

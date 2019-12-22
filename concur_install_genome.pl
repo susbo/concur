@@ -38,9 +38,9 @@ print "##################\n";
 # Re-sort the gtf/gff since it may not be sorted correctly.
 mkdir "data";
 if ($gtf =~ /.gz$/) {
-	open IN,"zcat $gtf | grep -v \"^#\" | awk '\$3==\"CDS\"' | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}};{print};' | sort -k1,1 -k4,4n | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}}; {print};' |" or die "Cannot open $gtf\n";
+	open IN,"zcat $gtf | grep -v \"^#\" | awk '\$3==\"CDS\"' | awk '\$1 != \"Mito\" && \$1 != \"chrM\" && \$1 != \"MT\"' | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}};{print};' | sort -k1,1 -k4,4n | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}}; {print};' |" or die "Cannot open $gtf\n";
 } else { 
-	open IN,"cat $gtf | grep -v \"^#\" | awk '\$3==\"CDS\"' | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}};{print};' | sort -k1,1 -k4,4n | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}}; {print};' |" or die "Cannot open $gtf\n";
+	open IN,"cat $gtf | grep -v \"^#\" | awk '\$3==\"CDS\"' | awk '\$1 != \"Mito\" && \$1 != \"chrM\" && \$1 != \"MT\"' | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}};{print};' | sort -k1,1 -k4,4n | awk -v OFS=\"\\t\" '{if (\$7==\"-\"){\$4=-\$4; \$5=-\$5;}}; {print};' |" or die "Cannot open $gtf\n";
 }
 #open OUT,'>:gzip',"data/$short.bed.gz" or die "Cannot write to data/$short.bed.gz\n";
 open OUT,"| gzip -c > data/$short.bed.gz" or die "Cannot write to data/$short.bed.gz\n";
