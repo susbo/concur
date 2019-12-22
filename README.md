@@ -10,7 +10,7 @@ These instructions will allow you to run CONCUR on your computer. CONCUR is run 
 
 You will need [Perl](https://www.perl.org) and [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) to be installed in your system.
 
-In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the "--noR" parameters.
+In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the "--noR" parameter.
 
 The following organisms are pre-installed from the Gencode [https://www.gencodegenes.org] project:
 
