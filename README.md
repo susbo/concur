@@ -4,7 +4,7 @@ CONCUR (**Co**do**n** **c**o**u**nts from **R**ibo-seq) is a tool for calculatin
 
 ## Getting Started
 
-These instructions will allow you to run CONCUR on your computer. CONCUR is run on the command line on Unix, Linux and Apple OS X.
+These instructions will allow you to run CONCUR on your computer. CONCUR is a command line tool developed for Linux and macOS.
 
 ### Prerequisites
 
