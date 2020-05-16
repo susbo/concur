@@ -19,7 +19,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-my $version = "0.1";
+my $version = "0.9";
 
 GetOptions("version" => sub { VersionMessage() }
           , "help" => \my $help
@@ -28,6 +28,7 @@ GetOptions("version" => sub { VersionMessage() }
           , 'genome=s' => \my $genome
           , 'out=s' => \my $out
           , 'name=s' => \my $name
+          , 'size=s' => \my $size
           , 'noR' => \my $noR
           ) or pod2usage(2);
 
@@ -39,6 +40,15 @@ if (!$name) { # Set name to input file name by default.
 	$name = $tmp[$#tmp]; $name =~ s/.bam//;
 }
 
+# Set size range to 20-50 nt by default.
+if (!$size) { $size = "20-50" }
+my $min_size; my $max_size;
+if ($size =~ /^(\d+)-(\d+)$/) {
+	($min_size,$max_size) = ($1,$2);
+} else {
+	pod2usage("ERROR: Unknown format used for size range.\n"); pod2usage(2);
+}
+
 #### Info #####
 # Print welcome message and information.
 
@@ -46,6 +56,7 @@ print "Running CONCUR v$version\n\n";
 print "### Parameters ###\n";
 print "Input file: $input\n";
 print "Genome: $genome\n";
+print "Fragment size range tested: $size\n";
 print "Output folder: $out\n";
 print "Output file name: $name\n";
 print "Run without R: "; if ($noR) { print "TRUE"; } else { print "FALSE"; } print "\n";
@@ -69,7 +80,7 @@ FinalCodonFrequency();
 Validate() unless $noR;
 
 sub GenomeToTranscript {
-	print "Mapping genomic reads to transcripts...\n";
+	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
 	mkdir "$tmp/genome_to_transcript";
 
 	# Extract reads with any overlap to exons; consider start for reads on + strand, and end for reads on - strand.
@@ -79,10 +90,11 @@ sub GenomeToTranscript {
 
 # Calculate periodicity at TSS per read length
 sub PeriodicityAtTSS {
-	print "Calculating periodicity...\n";
+	print "[Step 2/10] Calculating periodicity...\n";
 	mkdir "$tmp/periodicity";
 	my $file = "$tmp/genome_to_transcript/$name.intersect.gz";
-	foreach my $len (20..50) {
+#	foreach my $len (20..50) {
+	foreach my $len ($min_size..$max_size) {
      SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len && \$6==\$12' | awk '{if (\$12==\"+\") shift=\$11+\$2-\$8+12; else shift=\$11+\$9-\$3+12; if (shift<13 && shift>-13) print shift;}' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
 	}
 }
@@ -90,7 +102,7 @@ sub PeriodicityAtTSS {
 # Predict reading frame for each read length
 # This function creates an initial guess of the best shift for each read length and frame
 sub PredictFrame {
-	print "Predicting frame per read length...\n";
+	print "[Step 3/10] Predicting frame per read length...\n";
 	open OUT,">$out/$name.predicted_frame.txt";
 	my $max_ratio = 0;
 	my $max_i;
@@ -98,7 +110,8 @@ sub PredictFrame {
 
 	print OUT "Length\tShift\tScores\tDiffs\tReads\tSelected\n";
 
-	foreach my $i (20..50) {
+#	foreach my $i (20..50) {
+	foreach my $i ($min_size..$max_size) {
 		my @counts;	# Counts per position relative to the TIS
 		open IN,"$tmp/periodicity/$name.$i.txt";
 		while (my $row = <IN>) {
@@ -148,7 +161,7 @@ sub PredictFrame {
 
 # Calculate codon frequencies
 sub CodonFrequency {
-	print "Calculating codon frequency per read length...\n";
+	print "[Step 4/10] Calculating codon frequency per read length...\n";
 	# Retrieve codon frequencies
 	mkdir "$tmp/codon_frequency";
 
@@ -280,7 +293,7 @@ sub CodonFrequency {
 
 
 sub CodonFrequency2 {
-	print "Calculating codon frequency (step 2) per read length...\n";
+	print "[Step 5/10] Calculating codon frequency (step 2) per read length...\n";
 
 	mkdir "$tmp/codon_frequency/$name";
 	SystemBash("rm -f $tmp/codon_frequency/$name/$name.codon.*.txt");
@@ -299,13 +312,14 @@ sub CodonFrequency2 {
 
 sub PlotCodonFrequency {
 	my ($folder,$out) = @_;
-	print "Plotting codon per read length correlation...\n";
+	print "[Step 6/10] Plotting codon per read length correlation...\n" if $out !~ "selected";
+	print "[Step 8/10] Plotting codon per read length correlation...\n" if $out =~ "selected";
 	mkdir "$tmp/$out";
-	SystemBash("Rscript --vanilla correlation.R $tmp/$folder $name $genome $tmp/$out");
+	SystemBash("Rscript --vanilla scripts/correlation.R $tmp/$folder $name $genome $tmp/$out");
 }
 
 sub CorrelateToBest {
-	print "Calculating correlation between read lengths...\n";
+	print "[Step 7/10] Calculating correlation between read lengths...\n";
 	SystemBash("mkdir -p $tmp/correlate_to_best");
 	open OUT,">$tmp/correlate_to_best/CorrelateToBest.$name.txt";
 	open IN,"$tmp/correlation/$name.correlation.csv" or die "Cannot open $name.correlation.csv\n";
@@ -484,7 +498,7 @@ sub CorrelateToBest {
 }
 
 sub FinalCodonFrequency {
-	print "Calculate final codon frequency...\n";
+	print "[Step 9/10] Calculate final codon frequency...\n";
 
 	my %counts;
 	my @files = `ls $tmp/codon_frequency/$name.selected/*`;
@@ -516,8 +530,8 @@ sub FinalCodonFrequency {
 }
 
 sub Validate {
-	print "Make final figures for validation...\n";
-	SystemBash("Rscript --vanilla validate.R $out $name $genome");
+	print "[Step 10/10] Make final figures for validation...\n";
+	SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome");
 }
 
 # This function makes sure that Bash is used on Ubuntu systems.
