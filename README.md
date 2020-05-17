@@ -30,8 +30,8 @@ Download the latest version ([v1.0](https://github.com/susbo/concur/releases)) f
 
 The following commands will install CONCUR in your current directory:
 ```
-tar xvfc concur-1.0.tar.gz
-cd concur-1.0
+tar xvfc concur-0.9.tar.gz
+cd concur-0.9
 ```
 Verify that the tool is working with the example in the demo directory.
 

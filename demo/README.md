@@ -1,14 +1,14 @@
 The "expected_out" folder show the expected output folder from running the following command:
 
-
+```
 perl concur.pl --input demo/dom34_ncs2_elp6.YPD.rep1_100k.bam --genome sc3 --out demo/out
-
+```
 
 The demo bam files has been shortened to contain 100,000 reads. Analyzing it using CONCUR 
 should take about 1.5 minutes to run using a single core (@ 3.60GHz) and would print the 
 following message to the terminal:
 
-
+```
 Running CONCUR v0.9
 
 ### Parameters ###
@@ -39,4 +39,4 @@ null device
 [Step 10/10] Make final figures for validation...
 null device 
           1 
-
+```
