@@ -53,7 +53,7 @@ The following parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*, input file name is used by default]
-| -s \-\-size | Read size range to consider (e.g., `20-50`) [*optional*]
+| -s \-\-size | Fragment size range to use for analysis [*optional*, 20-50 used by default; non-informative lengths will automatically be excluded]
 | \-\-noR | Run without creating figures using R
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit

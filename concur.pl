@@ -46,7 +46,7 @@ my $min_size; my $max_size;
 if ($size =~ /^(\d+)-(\d+)$/) {
 	($min_size,$max_size) = ($1,$2);
 } else {
-	pod2usage("ERROR: Unknown format used for size range.\n"); pod2usage(2);
+	pod2usage("ERROR: Unknown format used for fragment size range.\n"); pod2usage(2);
 }
 
 #### Info #####
@@ -559,13 +559,15 @@ concur.pl - Using Getopt::Long and Pod::Usage
 
 =head1 SYNOPSIS
 
-concur.pl -i alignment.bam -g genome -o output_folder [-n output_name]
+concur.pl -i alignment.bam -g genome -o output_folder [-n output_name] [-s min_size-max_size] [--noR]
 
  Mandatory arguments:
    -i --input       Input bam file
    -g --genome      Reference genome [hg38, hg19, mm10, mm9, sc3, rn9]
    -o --out         Output folder name
+ Optional arguments:
    -n --name        Output file name [default: input file name]
+	-s --size        Fragment size range to use [default: 20-50]
 	--noR            Don't run any function that require R [default: FALSE]
  Additional options:
    -h --help        Print help message and exit
@@ -591,6 +593,10 @@ Output folder name
 =item B<--name>
 
 Output file name [default: input file name]
+
+=item B<--size>
+
+Fragment size range to use for analysis [default: 20-50]
 
 =item <--noR>
 
