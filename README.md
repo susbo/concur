@@ -10,7 +10,7 @@ These instructions will allow you to run CONCUR on your computer. CONCUR is a co
 
 You will need [Perl](https://www.perl.org) and [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) to be installed in your system.
 
-In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the "--noR" parameter.
+In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the `--noR` parameter.
 
 The following organisms are pre-installed from the Gencode [https://www.gencodegenes.org] project:
 
@@ -53,6 +53,7 @@ The following parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*, input file name is used by default]
+| -s \-\-size | Read size range to consider (e.g., `20-50`) [*optional*]
 | \-\-noR | Run without creating figures using R
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit
