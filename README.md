@@ -26,7 +26,7 @@ If you need to analyze another organism, you can easily do so provided you have 
 
 ### Installation
 
-Download the latest version ([v1.0](https://github.com/susbo/concur/releases)) from the releases tab.
+Download the latest version ([v0.9](https://github.com/susbo/concur/releases)) from the releases tab.
 
 The following commands will install CONCUR in your current directory:
 ```
@@ -37,7 +37,7 @@ Verify that the tool is working with the example in the demo directory.
 
 ## Running CONCUR
 
-You need a bam file with read alignments, `alignments.bam`, to run CONCUR. You also need to specify the genome, and an output directory.
+You need a bam file with read alignments, `alignments.bam`, to run CONCUR. You also need to specify the genome (`-g`) and an output directory (`-o`).
 
 ```
 perl concur.pl -i alignment.bam -g hg38 -o project_name
@@ -52,8 +52,8 @@ The following parameters are available
 | -i \-\-input | Input bam file [*mandatory*]
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
-| -n \-\-name | Output file name [*optional*, input file name is used by default]
-| -s \-\-size | Fragment size range to use for analysis [*optional*, 20-50 used by default; non-informative lengths will automatically be excluded]
+| -n \-\-name | Output file name [*optional*]. Input file name is used by default.
+| -s \-\-size | Fragment size range to use for analysis [*optional*]. 20-50 is used by default; non-informative lengths will automatically be excluded.
 | \-\-noR | Run without creating figures using R
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit
@@ -99,7 +99,7 @@ perl concur_install_genome.pl --gtf Homsap38.gtf.gz --fasta Homsap38.pcg.fa.gz -
 ```
 The `--pcg` tag will assume that there is a string in the "CDS:61-1041" format in each fasta header line. The start and end position of the coding sequence is retrieved from this string and is used to extract the coding sequence from the full transcript sequence. Coding sequences where the length is not a multiple of three nucleotides will not be used.
 
-This will create two files for mouse: data/mm10.bg.txt and data/mm10.bed.gz, and two files for human: data/hg38.bg.txt and data/hg38.bed.gz.
+This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`, and two files for human: `data/hg38.bg.txt` and `data/hg38.bed.gz`.
 
 ### Version
 
