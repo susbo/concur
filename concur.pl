@@ -1,5 +1,4 @@
 #!/bin/perl -w
-print `date`;
 #    CONCUR: quick and robust calculation of codon usage from ribosome profiling data
 #    Copyright (C) 	2020	Susanne Bornelöv
 #
@@ -78,8 +77,6 @@ CorrelateToBest();
 PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $noR;
 FinalCodonFrequency();
 Validate() unless $noR;
-
-print `date`;
 
 sub GenomeToTranscript {
 	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
