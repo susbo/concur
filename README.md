@@ -33,7 +33,7 @@ The following commands will install CONCUR in your current directory:
 tar xvfc concur-0.9.tar.gz
 cd concur-0.9
 ```
-Verify that the tool is working with the example in the demo directory.
+Verify that the tool is working with the example in the `demo` directory.
 
 ## Running CONCUR
 
