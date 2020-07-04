@@ -28,6 +28,7 @@ GetOptions("version" => sub { VersionMessage() }
           , 'out=s' => \my $out
           , 'name=s' => \my $name
           , 'size=s' => \my $size
+          , 'reads_min=i' => \my $min_reads
           , 'noR' => \my $noR
           ) or pod2usage(2);
 
@@ -38,6 +39,9 @@ if (!$name) { # Set name to input file name by default.
 	my @tmp = split "/",$input;
 	$name = $tmp[$#tmp]; $name =~ s/.bam//;
 }
+
+# Set minimum number of reads to analyze read to 1000 by default.
+if (!$min_reads) { $min_reads = "1000" }
 
 # Set size range to 20-50 nt by default.
 if (!$size) { $size = "20-50" }
@@ -52,14 +56,16 @@ if ($size =~ /^(\d+)-(\d+)$/) {
 # Print welcome message and information.
 
 print "Running CONCUR v$version\n\n";
-print "### Parameters ###\n";
+print "#####  General options  #######\n";
 print "Input file: $input\n";
 print "Genome: $genome\n";
-print "Fragment size range tested: $size\n";
 print "Output folder: $out\n";
 print "Output file name: $name\n";
 print "Run without R: "; if ($noR) { print "TRUE"; } else { print "FALSE"; } print "\n";
-print "##################\n";
+print "#####  Analysis options  ######\n";
+print "Fragment size range tested: $size\n";
+print "Minimum number of reads: $min_reads\n";
+print "###############################\n";
 
 #### Running CONCUR ####
 my $tmp = "$out/tmp";
@@ -67,16 +73,16 @@ mkdir $out;
 mkdir $tmp;
 
 # Run each subroutine
-GenomeToTranscript();
-PeriodicityAtTSS();
-PredictFrame();
-CodonFrequency();
-CodonFrequency2();
-PlotCodonFrequency("codon_frequency/$name","correlation") unless $noR;
-CorrelateToBest();
-PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $noR;
-FinalCodonFrequency();
-Validate() unless $noR;
+#GenomeToTranscript();
+#PeriodicityAtTSS();
+PredictOffset();
+#CodonFrequency();
+#CodonFrequency2();
+#PlotCodonFrequency("codon_frequency/$name","correlation") unless $noR;
+#CorrelateToBest();
+#PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $noR;
+#FinalCodonFrequency();
+#Validate() unless $noR;
 
 sub GenomeToTranscript {
 	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
@@ -100,8 +106,8 @@ sub PeriodicityAtTSS {
 
 # Predict reading frame for each read length
 # This function creates an initial guess of the best shift for each read length and frame
-sub PredictFrame {
-	print "[Step 3/10] Predicting frame per read length...\n";
+sub PredictOffset {
+	print "[Step 3/10] Predicting offset per read set...\n";
 	open OUT,">$out/$name.predicted_frame.txt";
 	my $max_ratio = 0;
 	my $max_i;
@@ -109,7 +115,6 @@ sub PredictFrame {
 
 	print OUT "Length\tShift\tScores\tDiffs\tReads\tSelected\n";
 
-#	foreach my $i (20..50) {
 	foreach my $i ($min_size..$max_size) {
 		my @counts;	# Counts per position relative to the TIS
 		open IN,"$tmp/periodicity/$name.$i.txt";
@@ -127,23 +132,20 @@ sub PredictFrame {
 			$b = $j+2 if (($counts[$b+20]//0) < ($counts[$j+2+20]//0));
 		}
 		print OUT "$i\t"; # Fragment length
-		my $N = 0; $N += $_ for @total;	# Total number of reads
 		my @shift_score = (0)x3; # SCORES column
 		my @shift_diff = (0)x3; # DIFFS column
 		my @predicted_shift = ("-","-","-");
-		# Make a frame prediction if total count is above 1000 reads.
-		if ($N>1000) {
-			foreach my $j (-6..6) {	# Find predicted shift as first local maxima position at predicted frame
-				my $frame = $j%3;
-				if ($total[$frame] > 1000 && ($counts[$j+20]//0) > ($counts[$j+20-3]//0) && ($counts[$j+20]//0) > ($counts[$j+20+3]//0)) { # Only consider local maxima (2.1)
-					my $score = Round(($counts[$j+20]//0) / (($counts[$j+20-3]//0) + ($counts[$j+20]//0) + ($counts[$j+20+3]//0)+1),3); # Use for second condition in 2.1.
-					my $diff = Round(($counts[$j+20]//0)*2 - ($counts[$j+20-9]//0)/9 - ($counts[$j+20-6]//0)/3 - ($counts[$j+20-3]//0) - ($counts[$j+20+3]//0)/3 - ($counts[$j+20+6]//0)/9 - ($counts[$j+20+9]//0)/9 ,0);
-					if ($diff >= $shift_diff[$frame] || $shift_diff[$frame] eq "-") { # Only replace it better or not set yet.
-						# Keep track of best score and difference for the predicted shift.
-						$shift_score[$frame] = $score;
-						$shift_diff[$frame] = $diff;
-						$predicted_shift[$frame] = $j;
-					}
+		# Make an initial frame prediction
+		foreach my $j (-6..6) {	# Find predicted shift as first local maxima position at predicted frame
+			my $frame = $j%3;
+			if ($total[$frame] > $min_reads && ($counts[$j+20]//0) > ($counts[$j+20-3]//0) && ($counts[$j+20]//0) > ($counts[$j+20+3]//0)) { # Only consider local maxima (2.1) and >$min_reads reads
+				my $score = Round(($counts[$j+20]//0) / (($counts[$j+20-3]//0) + ($counts[$j+20]//0) + ($counts[$j+20+3]//0)+1),3); # Use for second condition in 2.1.
+				my $diff = Round(($counts[$j+20]//0)*2 - ($counts[$j+20-9]//0)/9 - ($counts[$j+20-6]//0)/3 - ($counts[$j+20-3]//0) - ($counts[$j+20+3]//0)/3 - ($counts[$j+20+6]//0)/9 - ($counts[$j+20+9]//0)/9 ,0);
+				if ($diff >= $shift_diff[$frame] || $shift_diff[$frame] eq "-") { # Only replace it better or not set yet.
+					# Keep track of best score and difference for the predicted shift.
+					$shift_score[$frame] = $score;
+					$shift_diff[$frame] = $diff;
+					$predicted_shift[$frame] = $j;
 				}
 			}
 		}
@@ -151,7 +153,7 @@ sub PredictFrame {
 
 		my @score = (0,0,0);
 		foreach my $f (0..2) {
-			$score[$f] = 1 if $shift_score[$f] > 0.5 && $total[$f]>1000;
+			$score[$f] = 1 if $shift_score[$f] > 0.5;
 		}
 		print OUT "",join(";",@score)."\n";
 	}
@@ -160,7 +162,7 @@ sub PredictFrame {
 
 # Calculate codon frequencies
 sub CodonFrequency {
-	print "[Step 4/10] Calculating codon frequency per read length...\n";
+	print "[Step 4/10] Calculating codon frequency per read set...\n";
 	# Retrieve codon frequencies
 	mkdir "$tmp/codon_frequency";
 
@@ -292,7 +294,7 @@ sub CodonFrequency {
 
 
 sub CodonFrequency2 {
-	print "[Step 5/10] Calculating codon frequency (step 2) per read length...\n";
+	print "[Step 5/10] Calculating codon frequency (step 2) per read set...\n";
 
 	mkdir "$tmp/codon_frequency/$name";
 	SystemBash("rm -f $tmp/codon_frequency/$name/$name.codon.*.txt");
@@ -311,14 +313,14 @@ sub CodonFrequency2 {
 
 sub PlotCodonFrequency {
 	my ($folder,$out) = @_;
-	print "[Step 6/10] Plotting codon per read length correlation...\n" if $out !~ "selected";
-	print "[Step 8/10] Plotting codon per read length correlation...\n" if $out =~ "selected";
+	print "[Step 6/10] Plotting codon correlations per read set...\n" if $out !~ "selected";
+	print "[Step 8/10] Plotting codon correlations per read set...\n" if $out =~ "selected";
 	mkdir "$tmp/$out";
 	SystemBash("Rscript --vanilla scripts/correlation.R $tmp/$folder $name $genome $tmp/$out");
 }
 
 sub CorrelateToBest {
-	print "[Step 7/10] Calculating correlation between read lengths...\n";
+	print "[Step 7/10] Calculating correlations between read sets...\n";
 	SystemBash("mkdir -p $tmp/correlate_to_best");
 	open OUT,">$tmp/correlate_to_best/CorrelateToBest.$name.txt";
 	open IN,"$tmp/correlation/$name.correlation.csv" or die "Cannot open $name.correlation.csv\n";
@@ -380,7 +382,7 @@ sub CorrelateToBest {
 	my %flag;
 
 	# Calculate cor_score as correlation at 2,3,7,8 - correlation at 5,6
-	print OUT "Calculating score for each read...\n";
+	print OUT "Calculating score for each read set...\n";
 	my @all_reads = `cat $tmp/correlation/$name.correlation.csv | sed 1d | cut -d"." -f1 | sort | uniq | grep -v BG`;
 	foreach my $read (@all_reads) {
 		chomp $read;
@@ -565,8 +567,9 @@ concur.pl -i alignment.bam -g genome -o output_folder [-n output_name] [-s min_s
    -o --out         Output folder name
  Optional arguments:
    -n --name        Output file name [default: input file name]
-	-s --size        Fragment size range to use [default: 20-50]
-	--noR            Don't run any function that require R [default: FALSE]
+   -s --size        Fragment size range to use [default: 20-50]
+   -r --reads_min   Minimum number of reads required to include read set in analysis [default: 1000]
+   --noR            Don't run any function that require R [default: FALSE]
  Additional options:
    -h --help        Print help message and exit
    -m --man         Print help message and exit
@@ -595,6 +598,10 @@ Output file name [default: input file name]
 =item B<--size>
 
 Fragment size range to use for analysis [default: 20-50]
+
+=item B<--reads_min>
+
+Minimum number of reads near the TIS to include a read set in the initial step of the analysis [default: 1000]
 
 =item <--noR>
 

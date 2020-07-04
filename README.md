@@ -45,7 +45,7 @@ perl concur.pl -i alignment.bam -g hg38 -o project_name
 
 ### Parameters
 
-The following parameters are available
+The following general parameters are available
 
 | Parameter | Description
 | :---: | ---
@@ -53,11 +53,17 @@ The following parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*]. Input file name is used by default.
-| -s \-\-size | Fragment size range to use for analysis [*optional*]. 20-50 is used by default; non-informative lengths will automatically be excluded.
 | \-\-noR | Run without creating figures using R
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit
 | -v \-\-version | Print version and quit
+
+The following parameters can be used to change some of the default behavour
+
+| Parameter | Description
+| :---: | ---
+| -s \-\-size | Fragment size range to use for analysis [*optional*]. 20-50 is used by default; non-informative lengths will automatically be excluded.
+| -r \-\-reads_min | Minimum number of reads near the TIS to include a read set in the initial step of the analysis [default: 1000] [*optional*]
 
 ### Installing Additional Genomes
 
@@ -103,7 +109,7 @@ This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`,
 
 ### Version
 
-The current version is 0.9. For other the versions, see the [tags on this repository](https://github.com/your/project/tags). 
+The current version is 0.9. For other the versions, see the [tags on this repository](https://github.com/susbo/concur/tags). 
 
 ### Authors
 
