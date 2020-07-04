@@ -63,7 +63,7 @@ The following parameters can be used to change some of the default behavour
 | Parameter | Description
 | :---: | ---
 | -s \-\-size | Fragment size range to use for analysis. 20-50 is used by default; non-informative lengths will automatically be excluded. [*optional*]
-| -r \-\-reads_min | This parameter sets the minimum number of reads near the TIS required to include a read set in the analysis. A threshold of **1000 reads** is used by default. Increasing this threshold may improve the analysis of very deeply sequenced libraries. We do not recommend lowering it. [*optional*]
+| -r \-\-reads_min | This parameter sets the minimum number of reads near the TIS required to consider a read set in the analysis. The default threshold is **1000** reads. Increasing this threshold may improve the analysis of very deeply sequenced libraries. [*optional*]
 
 ### Installing Additional Genomes
 
