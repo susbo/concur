@@ -10,7 +10,7 @@ These instructions will allow you to run CONCUR on your computer. CONCUR is a co
 
 You will need [Perl](https://www.perl.org) and [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) to be installed in your system.
 
-In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the `--noR` parameter.
+In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the `--withoutR` parameter.
 
 The following organisms are pre-installed from the Gencode [https://www.gencodegenes.org] project:
 
@@ -53,7 +53,7 @@ The following general parameters are available
 | -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
 | -o \-\-out | Output folder name [*mandatory*]
 | -n \-\-name | Output file name [*optional*]. Input file name is used by default.
-| \-\-noR | Run without creating figures using R
+| -w \-\-withoutR | Run without creating figures using R. This is useful if R is not installed.
 | -h \-\-help | Print help message and quit
 | -m \-\-man | Print help message and quit
 | -v \-\-version | Print version and quit
@@ -62,12 +62,13 @@ The following parameters can be used to change some of the default behavour
 
 | Parameter | Description
 | :---: | ---
-| -s \-\-size | Fragment size range to use for analysis. 20-50 is used by default; non-informative lengths will automatically be excluded. [*optional*]
+| -s \-\-size | Fragment size range to use for analysis. **20-50** is used by default; non-informative lengths will automatically be excluded. [*optional*]
 | -r \-\-reads_min | This parameter sets the minimum number of reads near the TIS required to consider a read set in the analysis. The default threshold is **1000** reads. Increasing this threshold may improve the analysis of very deeply sequenced libraries. [*optional*]
+| -f \-\-filter_outliers | By default, a read set is included if S_r >= **0.5** * S_r^max at the P and A site. However, changing this parameter can alter that filtering. It is generally useful to limit the codon usage analysis to read sets that are among the best ones. However, there could be applications were keeping as many read sets as possible is of higher importance (use a lower threshold), or when refining the final codon counts by selected only the very best read sets (increasing the threshold). [*optional*]
 
 ### Installing Additional Genomes
 
-These instructions will help you to install additional genomes. CONCUR can be run for any organism provided that you have a gtf file containing genes and their coding sequence. If available, it will use the read frame information in column 8, otherwise frame can be calculated manually.
+These instructions will help you to install additional genomes. CONCUR can be run for any organism provided that you have a gtf file containing genes and their coding sequence. If available, CONCUR will use the reading frame information in column 8, otherwise frame can be calculated manually.
 
 #### Using coding sequences fasta
 This is the best option if there is a fasta file with the coding sequences available (e.g., Ensembl annotations).
@@ -80,7 +81,7 @@ wget -O Saccer3.gff.gz ftp://ftp.ensemblgenomes.org/pub/fungi/release-40/gff3/sa
 wget -O Ratnor9.cds.fa.gz ftp://ftp.ensembl.org/pub/release-95/fasta/rattus_norvegicus/cds/Rattus_norvegicus.Rnor_6.0.cds.all.fa.gz
 wget -O Ratnor9.gtf.gz ftp://ftp.ensembl.org/pub/release-95/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.95.gtf.gz
 ```
-Next, run the installation tool. Use `--recalculate` if you wish to disregard the read frame information in column 8 of the gtf/gff file.
+Next, run the installation tool. Use `--recalculate` if you wish to disregard the reading frame information in column 8 of the gtf/gff file.
 ```
 perl concur_install_genome.pl --gtf Saccer3.gff.gz --fasta Saccer3.cds.fa.gz --short sc3
 perl concur_install_genome.pl --gtf Ratnor9.gtf.gz --fasta Ratnor9.cds.fa.gz --short rn9
@@ -98,7 +99,7 @@ wget -O Musmus10.gtf.gz ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/
 wget -O Homsap38.pcg.fa.gz ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.pc_transcripts.fa.gz
 wget -O Homsap38.gtf.gz ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.primary_assembly.annotation.gtf.gz
 ```
-Next, run the installation tool. The `--pcg` flag is used to extract the coding sequences from the full transcript sequences. Use `--recalculate` if you wish to disregard the read frame information in column 8 of the gtf/gff file.
+Next, run the installation tool. The `--pcg` flag is used to extract the coding sequences from the full transcript sequences. Use `--recalculate` if you wish to disregard the reading frame information in column 8 of the gtf/gff file.
 ```
 perl concur_install_genome.pl --gtf Musmus10.gtf.gz --fasta Musmus10.pcg.fa.gz --short mm10 --pcg
 perl concur_install_genome.pl --gtf Homsap38.gtf.gz --fasta Homsap38.pcg.fa.gz --short hg38 --pcg

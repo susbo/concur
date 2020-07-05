@@ -29,7 +29,8 @@ GetOptions("version" => sub { VersionMessage() }
           , 'name=s' => \my $name
           , 'size=s' => \my $size
           , 'reads_min=i' => \my $min_reads
-          , 'noR' => \my $noR
+          , 'filter_outliers=f' => \my $filter_outliers
+          , 'withoutR' => \my $withoutR
           ) or pod2usage(2);
 
 pod2usage(2) if $help or $man;
@@ -40,8 +41,11 @@ if (!$name) { # Set name to input file name by default.
 	$name = $tmp[$#tmp]; $name =~ s/.bam//;
 }
 
-# Set minimum number of reads to analyze read to 1000 by default.
-if (!$min_reads) { $min_reads = "1000" }
+# Set minimum number of reads required to include a read set in the analysis to 1000 by default.
+if (!$min_reads) { $min_reads = "1000"; }
+
+# Set minimum number of reads required to include a read set in the analysis to 1000 by default.
+if (!$filter_outliers) { $filter_outliers = 0.5; }
 
 # Set size range to 20-50 nt by default.
 if (!$size) { $size = "20-50" }
@@ -61,10 +65,11 @@ print "Input file: $input\n";
 print "Genome: $genome\n";
 print "Output folder: $out\n";
 print "Output file name: $name\n";
-print "Run without R: "; if ($noR) { print "TRUE"; } else { print "FALSE"; } print "\n";
+print "Run without R: "; if ($withoutR) { print "TRUE"; } else { print "FALSE"; } print "\n";
 print "#####  Analysis options  ######\n";
 print "Fragment size range tested: $size\n";
 print "Minimum number of reads: $min_reads\n";
+print "Outlier removal filter [2.2.3]: $filter_outliers\n";
 print "###############################\n";
 
 #### Running CONCUR ####
@@ -73,16 +78,16 @@ mkdir $out;
 mkdir $tmp;
 
 # Run each subroutine
-#GenomeToTranscript();
-#PeriodicityAtTSS();
+GenomeToTranscript();
+PeriodicityAtTSS();
 PredictOffset();
-#CodonFrequency();
-#CodonFrequency2();
-#PlotCodonFrequency("codon_frequency/$name","correlation") unless $noR;
-#CorrelateToBest();
-#PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $noR;
-#FinalCodonFrequency();
-#Validate() unless $noR;
+CodonFrequency();
+CodonFrequency2();
+PlotCodonFrequency("codon_frequency/$name","correlation") unless $withoutR;
+CorrelateToBest();
+PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $withoutR;
+FinalCodonFrequency();
+Validate() unless $withoutR;
 
 sub GenomeToTranscript {
 	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
@@ -448,7 +453,7 @@ sub CorrelateToBest {
 			print OUT "\t$scores{$pos}{$read}/$max_score[$pos]";
 			$scoreSum += $scores{$pos}{$read};
 			$maxSum += $max_score[$pos];
-			if ($scores{$pos}{$read} < $max_score[$pos]*0.5) { # Filter 2.2.3
+			if ($scores{$pos}{$read} < $max_score[$pos]*$filter_outliers) { # Filter 2.2.3
 				$flag{$read} .= "SCORE$pos,";
 				$exclude{$read}++;
 			}
@@ -559,7 +564,7 @@ concur.pl - Using Getopt::Long and Pod::Usage
 
 =head1 SYNOPSIS
 
-concur.pl -i alignment.bam -g genome -o output_folder [-n output_name] [-s min_size-max_size] [--noR]
+concur.pl -i alignment.bam -g genome -o output_folder [-n output_name] [-s min_size-max_size] [--withoutR]
 
  Mandatory arguments:
    -i --input       Input bam file
@@ -569,7 +574,7 @@ concur.pl -i alignment.bam -g genome -o output_folder [-n output_name] [-s min_s
    -n --name        Output file name [default: input file name]
    -s --size        Fragment size range to use [default: 20-50]
    -r --reads_min   Minimum number of reads required to include read set in analysis [default: 1000]
-   --noR            Don't run any function that require R [default: FALSE]
+   --withoutR            Don't run any function that require R [default: FALSE]
  Additional options:
    -h --help        Print help message and exit
    -m --man         Print help message and exit
@@ -603,7 +608,12 @@ Fragment size range to use for analysis [default: 20-50]
 
 Minimum number of reads near the TIS to include a read set in the initial step of the analysis [default: 1000]
 
-=item <--noR>
+=item B<--filter_outliers>
+
+The final filtering step require a read set to have Sr score at least 0.5*max(Sr) at the P and A site. This parameter
+can be used to change that threshold [default: 0.5]
+
+=item B<--withoutR>
 
 Don't run any function that require R [default: FALSE]
 
