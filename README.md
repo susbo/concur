@@ -49,14 +49,14 @@ The following general parameters are available
 
 | Parameter | Description
 | :---: | ---
-| -i \-\-input | Input bam file [*mandatory*]
-| -g \-\-genome | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
-| -o \-\-out | Output folder name [*mandatory*]
-| -n \-\-name | Output file name [*optional*]. Input file name is used by default.
-| -w \-\-withoutR | Run without creating figures using R. This is useful if R is not installed.
-| -h \-\-help | Print help message and quit
-| -m \-\-man | Print help message and quit
-| -v \-\-version | Print version and quit
+| -i / \-\-input BAM_FILE | Input bam file [*mandatory*]
+| -g / \-\-genome GENOME | Genome version (e.g., *hg38*, *hg19*, *mm10*, *mm9*, *rn9* or *sc3*) [*mandatory*]
+| -o / \-\-out FOLDER | Output folder name [*mandatory*]
+| -n / \-\-name FILENAME| Output file name [*optional*]. Input file name is used by default.
+| -w / \-\-withoutR | Run without creating figures using R. This is useful if R is not installed.
+| -h / \-\-help | Print help message and quit
+| -m / \-\-man | Print help message and quit
+| -v / \-\-version | Print version and quit
 
 The following parameters can be used to change some of the default behavour
 
