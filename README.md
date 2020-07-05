@@ -62,9 +62,9 @@ The following parameters can be used to change some of the default behavour
 
 | Parameter | Description
 | :---: | ---
-| -s / \-\-size | Fragment size range to use for analysis. **20-50** is used by default; non-informative lengths will automatically be excluded. [*optional*]
-| -r / \-\-reads_min | This parameter sets the minimum number of reads near the TIS required to consider a read set in the analysis. The default threshold is **1000** reads. Increasing this threshold may improve the analysis of very deeply sequenced libraries. [*optional*]
-| -f / \-\-filter_outliers | By default, a read set is included in the final codon usage calculations if S_r >= **0.5**}\*S_r^max at the P and A site (see section 2.2.3 in the manuscript). However, changing this parameter can alter that filtering. It is generally useful to limit the codon usage analysis to read sets that are among the best ones. However, there could be applications were keeping as many read sets as possible is of higher importance (use a lower threshold), or when refining the final codon counts by selected only the very best read sets (increase the threshold). [*optional*]
+| -s / \-\-size FROM-TO | Fragment size range to use for analysis. **20-50** is used by default; non-informative lengths will automatically be excluded. [*optional*]
+| -r / \-\-reads_min READS | This parameter sets the minimum number of reads near the TIS required to consider a read set in the analysis. The default threshold is **1000** reads. Increasing this threshold may improve the analysis of very deeply sequenced libraries. [*optional*]
+| -f / \-\-filter_outliers THRESHOLD | By default, a read set is included in the final codon usage calculations if S_r >= **0.5**}\*S_r^max at the P and A site (see section 2.2.3 in the manuscript). However, changing this parameter can alter that filtering. It is generally useful to limit the codon usage analysis to read sets that are among the best ones. However, there could be applications were keeping as many read sets as possible is of higher importance (use a lower threshold), or when refining the final codon counts by selected only the very best read sets (increase the threshold). [*optional*]
 
 ### Installing Additional Genomes
 
