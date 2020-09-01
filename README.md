@@ -122,5 +122,6 @@ This project is licensed under the GNU AGPLv3 License - see the [LICENSE.txt](LI
 
 ### Citation
 
-If you use CONCUR for a scientific article, please cite our paper:
+Reference describing CONCUR:
+
 Michaela Frye, Susanne Bornelöv (2020) CONCUR: quick and robust calculation of codon usage from ribosome profiling data, *Bioinformatics*, bta733, doi:10.1093/bioinformatics/btaa733
