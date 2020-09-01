@@ -18,7 +18,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-my $version = "0.9";
+my $version = "1.0";
 
 GetOptions("version" => sub { VersionMessage() }
           , "help" => \my $help

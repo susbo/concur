@@ -26,12 +26,12 @@ If you need to analyze another organism, you can easily do so provided you have 
 
 ### Installation
 
-Download the latest version ([v0.9](https://github.com/susbo/concur/releases)) from the releases tab.
+Download the latest version ([v1.0](https://github.com/susbo/concur/releases)) from the releases tab.
 
 The following commands will install CONCUR in your current directory:
 ```
-tar xvfc concur-0.9.tar.gz
-cd concur-0.9
+tar xvfc concur-1.0.tar.gz
+cd concur-1.0
 ```
 Verify that the tool is working with the example in the `demo` directory.
 
@@ -79,7 +79,7 @@ wget -O Saccer3.cds.fa.gz ftp://ftp.ensemblgenomes.org/pub/fungi/release-40/fast
 wget -O Saccer3.gff.gz ftp://ftp.ensemblgenomes.org/pub/fungi/release-40/gff3/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.40.gff3.gz
 
 wget -O Ratnor9.cds.fa.gz ftp://ftp.ensembl.org/pub/release-95/fasta/rattus_norvegicus/cds/Rattus_norvegicus.Rnor_6.0.cds.all.fa.gz
-wget -O Ratnor9.gtf.gz ftp://ftp.ensembl.org/pub/release-95/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.95.gtf.gz
+wget -O Ratnor9.gtf.gz ftp://ftp.ensembl.org/pub/release-95/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.1.05.gtf.gz
 ```
 Next, run the installation tool. Use `--recalculate` if you wish to disregard the reading frame information in column 8 of the gtf/gff file.
 ```
@@ -110,7 +110,7 @@ This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`,
 
 ### Version
 
-The current version is 0.9. For other the versions, see the [tags on this repository](https://github.com/susbo/concur/tags). 
+The current version is 1.0. For other the versions, see the [tags on this repository](https://github.com/susbo/concur/tags). 
 
 ### Authors
 
@@ -122,4 +122,5 @@ This project is licensed under the GNU AGPLv3 License - see the [LICENSE.txt](LI
 
 ### Citation
 
-At the moment you can refer to the github repository [https://github.com/susbo/concur]. We are in the process of submitting a paper describing the tool.
+If you use CONCUR for a scientific article, please cite our paper:
+Michaela Frye, Susanne Bornelöv (2020) CONCUR: quick and robust calculation of codon usage from ribosome profiling data, *Bioinformatics*, bta733, doi:10.1093/bioinformatics/btaa733
