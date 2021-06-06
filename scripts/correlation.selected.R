@@ -11,7 +11,16 @@ filename = args[2]
 genome = args[3]
 
 background = read.csv(paste("data/",genome,".bg.txt",sep=""),sep="\t",header=FALSE)
-codons = read.csv("data/codon_to_AA.csv",sep="\t",stringsAsFactors = FALSE)$Codon
+
+# List all codons from AAA to TTT
+codons = c()
+for (i in c("A","C","G","T")) {
+  for (j in c("A","C","G","T")) {
+    for (k in c("A","C","G","T")) {
+      codons = c(codons,paste(i,j,k,sep=""))
+    }
+  }
+}
 
 alldat = matrix(nrow=64,ncol=0)
 
