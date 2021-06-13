@@ -26,7 +26,7 @@ If you need to analyze another organism, you can easily do so provided you have 
 
 ### Installation
 
-Download the latest version ([v1.0](https://github.com/susbo/concur/releases)) from the releases tab.
+Download the latest release ([v1.0](https://github.com/susbo/concur/releases)) from the release tab.
 
 The following commands will install CONCUR in your current directory:
 ```
@@ -34,6 +34,8 @@ tar xvfc concur-1.0.tar.gz
 cd concur-1.0
 ```
 Verify that the tool is working with the example in the `demo` directory.
+
+Alternatively, clone this repository for the latest version.
 
 ## Running CONCUR
 
@@ -110,7 +112,7 @@ This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`,
 
 ### Version
 
-The current version is 1.0. For other the versions, see the [tags on this repository](https://github.com/susbo/concur/tags). 
+The current version is 1.0. For other the versions, see the [releases on this repository](https://github.com/susbo/concur/releases). 
 
 ### Authors
 
@@ -122,6 +124,6 @@ This project is licensed under the GNU AGPLv3 License - see the [LICENSE.txt](LI
 
 ### Citation
 
-Reference describing CONCUR:
+If you use CONCUR for your work, please cite:
 
-Michaela Frye, Susanne Bornelöv (2020) CONCUR: quick and robust calculation of codon usage from ribosome profiling data, *Bioinformatics*, bta733, doi:10.1093/bioinformatics/btaa733
+Michaela Frye, Susanne Bornelöv (2020) CONCUR: quick and robust calculation of codon usage from ribosome profiling data, *Bioinformatics*, bta733, [https://doi.org/10.1093/bioinformatics/btaa733](doi:10.1093/bioinformatics/btaa733)

@@ -18,7 +18,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-my $version = "1.0";
+my $version = "1.1.0-beta";
 
 GetOptions("version" => sub { VersionMessage() }
           , "help" => \my $help
@@ -114,7 +114,6 @@ sub PeriodicityAtTSS {
 	print "[Step 2/10] Calculating periodicity...\n";
 	mkdir "$tmp/periodicity";
 	my $file = "$tmp/genome_to_transcript/$name.intersect.gz";
-#	foreach my $len (20..50) {
 	foreach my $len ($min_size..$max_size) {
      SystemBash("zcat $file | awk -v len=\"$len\" 'length(\$5)==len && \$6==\$12' | awk '{if (\$12==\"+\") shift=\$11+\$2-\$8+12; else shift=\$11+\$9-\$3+12; if (shift<13 && shift>-13) print shift;}' | sort | uniq -c | sort -k2,2 -n > $tmp/periodicity/$name.$len.txt");
 	}
@@ -180,7 +179,7 @@ sub PredictOffset {
 	}
 	close OUT;
 	print " .. Read sets (length-frame) candidates selected: @read_sets\n";
-	if (@read_sets == 0) { die "ERROR: No candidate read set selected in \"$out/$name.predicted_frame.txt\". Have you forget to remove sequencing adapters? Exiting.\n"; }
+	if (@read_sets == 0) { die "ERROR: No candidate read set selected in \"$out/$name.predicted_frame.txt\". Have you forgot to remove sequencing adapters? Exiting.\n"; }
 }
 
 # Calculate codon frequencies
