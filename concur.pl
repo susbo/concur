@@ -93,9 +93,20 @@ sub GenomeToTranscript {
 	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
 	mkdir "$tmp/genome_to_transcript";
 
-	# Extract reads with any overlap to exons; consider start for reads on + strand, and end for reads on - strand.
+	# Check that input file exists.
+	if (! -e "$input") { die "ERROR: Cannot file input file \"$input\". Exiting.\n"; }
+
+	# Extract reads with any overlap to exons; consider start for reads on + strand, and end for reads on - strand (part1)
 	SystemBash("paste <(bedtools bamtobed -i $input | cut -f1-4,6) <(samtools view $input | cut -f10) | awk -v OFS=\"\t\" '\$5==\"-\" {\$2=\$3-length(\$6)} \$5==\"+\" {\$3=\$2+length(\$6)} {print \$1,\$2,\$3,\$4,\$6,\$5}' | gzip -c > $tmp/genome_to_transcript/$name.bed.gz");
+
+	# Verify that bed file isn't empty.
+	if (-s "$tmp/genome_to_transcript/$name.bed.gz" == 20) { die "ERROR: Conversion of \"$input\" to BED resulted in an empty file. Is the input a correct BAM file? Exiting.\n"; }
+
+	# Extract reads with any overlap to exons; consider start for reads on + strand, and end for reads on - strand (part2)
 	SystemBash("bedtools intersect -a <(zcat $tmp/genome_to_transcript/$name.bed.gz) -b <(zcat data/$genome.bed.gz) -wo -split | gzip -c > $tmp/genome_to_transcript/$name.intersect.gz");
+
+	# Verify that insersection bed file isn't empty.
+	if (-s "$tmp/genome_to_transcript/$name.intersect.gz" == 20) { die "ERROR: No reads mapping to exons found. Please verify that the gene annotations in \"data/$genome.bed.gz\" agree with those in the BAM file. Exiting.\n"; }
 }
 
 # Calculate periodicity at TSS per read length
@@ -109,7 +120,7 @@ sub PeriodicityAtTSS {
 	}
 }
 
-# Predict reading frame for each read length
+# Predict offset for each reading frame and read length
 # This function creates an initial guess of the best shift for each read length and frame
 sub PredictOffset {
 	print "[Step 3/10] Predicting offset per read set...\n";
@@ -120,6 +131,8 @@ sub PredictOffset {
 
 	print OUT "Length\tShift\tScores\tDiffs\tReads\tSelected\n";
 
+	my @read_sets; # Keep track of selected read sets
+	
 	foreach my $i ($min_size..$max_size) {
 		my @counts;	# Counts per position relative to the TIS
 		open IN,"$tmp/periodicity/$name.$i.txt";
@@ -158,11 +171,16 @@ sub PredictOffset {
 
 		my @score = (0,0,0);
 		foreach my $f (0..2) {
-			$score[$f] = 1 if $shift_score[$f] > 0.5;
+			if ($shift_score[$f] > 0.5) { # Accepted read set
+				$score[$f] = 1;
+				push @read_sets,"$i-$f";
+			}
 		}
 		print OUT "",join(";",@score)."\n";
 	}
 	close OUT;
+	print " .. Read sets (length-frame) candidates selected: @read_sets\n";
+	if (@read_sets == 0) { die "ERROR: No candidate read set selected in \"$out/$name.predicted_frame.txt\". Have you forget to remove sequencing adapters? Exiting.\n"; }
 }
 
 # Calculate codon frequencies
@@ -321,7 +339,7 @@ sub PlotCodonFrequency {
 	print "[Step 6/10] Plotting codon correlations per read set...\n" if $out !~ "selected";
 	print "[Step 8/10] Plotting codon correlations per read set...\n" if $out =~ "selected";
 	mkdir "$tmp/$out";
-	SystemBash("Rscript --vanilla scripts/correlation.R $tmp/$folder $name $genome $tmp/$out");
+	SystemBash("Rscript --vanilla scripts/correlation.R $tmp/$folder $name $genome $tmp/$out > /dev/null");
 }
 
 sub CorrelateToBest {
@@ -329,7 +347,7 @@ sub CorrelateToBest {
 	SystemBash("mkdir -p $tmp/correlate_to_best");
 	open OUT,">$tmp/correlate_to_best/CorrelateToBest.$name.txt";
 	open IN,"$tmp/correlation/$name.correlation.csv" or die "Cannot open $name.correlation.csv\n";
-	SystemBash("rm -f $tmp/codon_frequency/$name.selected/*");
+	SystemBash("rm -f $tmp/codon_frequency/$name.selected/*.txt"); # Remove results from any previous run
 
 	# Extract all names from first row
 	chomp(my $row = <IN>);
@@ -484,8 +502,8 @@ sub CorrelateToBest {
 	my @keep = @all_reads;
 	foreach my $e (@exclude) { @keep = grep {$_ ne $e} @keep; }
 #	print "@max_score\n";
-	print OUT " .. Read lengths excluded: @exclude\n";
-	print OUT " .. Read lengths kept: @keep\n";
+	print OUT " .. Read sets (length-frame) excluded: @exclude\n";
+	print OUT " .. Read sets (length-frame) kept: @keep\n";
 	close IN;	
 	close OUT;
 
@@ -500,6 +518,10 @@ sub CorrelateToBest {
 			SystemBash("ln -s ../$name/$name.codon.$pos.$k.txt $tmp/codon_frequency/$name.selected/$name.codon.$pos.$k.txt");
 		}
 	}
+
+	print " .. Read sets (length-frame) excluded: @exclude\n";
+	print " .. Read sets (length-frame) kept: @keep\n";
+	if (@keep == 0) { die "No read sets kept after filtering. Exiting.\n"; }
 }
 
 sub FinalCodonFrequency {
@@ -536,7 +558,7 @@ sub FinalCodonFrequency {
 
 sub Validate {
 	print "[Step 10/10] Make final figures for validation...\n";
-	SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome");
+	SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome > /dev/null");
 }
 
 # This function makes sure that Bash is used on Ubuntu systems.
