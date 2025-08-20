@@ -18,7 +18,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-my $version = "1.1.0-beta";
+my $version = "1.1.1-beta";
 
 GetOptions("version" => sub { VersionMessage() }
           , "help" => \my $help
@@ -69,7 +69,7 @@ print "Run without R: "; if ($withoutR) { print "TRUE"; } else { print "FALSE"; 
 print "#####  Analysis options  ######\n";
 print "Fragment size range tested: $size\n";
 print "Minimum number of reads: $min_reads\n";
-print "Outlier removal filter [2.2.3]: $filter_outliers\n";
+print "Outlier removal filter: $filter_outliers\n"; # Section 2.2.3 in paper
 print "###############################\n";
 
 #### Running CONCUR ####
@@ -83,11 +83,11 @@ PeriodicityAtTSS();
 PredictOffset();
 CodonFrequency();
 CodonFrequency2();
-PlotCodonFrequency("codon_frequency/$name","correlation") unless $withoutR;
+CalculateCorrelations("codon_frequency/$name","correlation");
 CorrelateToBest();
-PlotCodonFrequency("codon_frequency/$name.selected","correlation.selected") unless $withoutR;
+CalculateCorrelations("codon_frequency/$name.selected","correlation.selected");
 FinalCodonFrequency();
-Validate() unless $withoutR;
+Validate();
 
 sub GenomeToTranscript {
 	print "[Step 1/10] Mapping genomic reads to transcripts...\n";
@@ -333,19 +333,101 @@ sub CodonFrequency2 {
 	}
 }
 
-sub PlotCodonFrequency {
+sub CalculateCorrelations {
 	my ($folder,$out) = @_;
-	print "[Step 6/10] Plotting codon correlations per read set...\n" if $out !~ "selected";
-	print "[Step 8/10] Plotting codon correlations per read set...\n" if $out =~ "selected";
+	print "[Step 6/10] " if $out !~ "selected";
+	print "[Step 8/10] " if $out =~ "selected";
+	print "Calculating codon correlations per read set";
+	print " [no plotting due to --withoutR]" if $withoutR;
+	printf "...\n";
 	mkdir "$tmp/$out";
-	SystemBash("Rscript --vanilla scripts/correlation.R $tmp/$folder $name $genome $tmp/$out > /dev/null");
+
+	# Read genome background counts (2nd column)
+	my $bgfile = "data/$genome.bg.txt";
+	open IN,"$bgfile" or die "Cannot open $bgfile: $!";
+	my @background;
+	while (<IN>) {
+   	 chomp;
+	    my @tmp = split /\t/;
+   	 push @background, $tmp[1];   # second column only
+	}
+	close IN;
+
+	# List of all codons AAA-TTT
+	my @codons = GetAllCodons();
+
+	# Create counts dataset
+	my %alldat;   # {codon}{sample} = value
+	my @samples;  # Keep track of sample names to retain order
+
+	for my $i (1..9) {
+   	my @files = glob("$tmp/$folder/$name.codon.$i*.txt");
+
+		for my $file (@files) {
+      	next unless -s $file;   # skip empty
+
+			# extract name from filename
+			$file =~ /codon.\d.(.+).txt/;
+			my $read_set = $1;
+
+ 			# read codon counts
+ 			open IN, "$file" or die "Cannot open $file: $!";
+ 			my %tmp;
+ 			while (<IN>) {
+ 				chomp;
+ 				my (undef, $val, $codon) = split /\s+/;
+ 				$tmp{$codon} = $val;
+ 			}
+ 			close IN;
+
+ 			# fill missing codons with 0
+ 			for my $c (@codons) {
+ 				$alldat{$c}{"$read_set.$i"} = $tmp{$c} // 0;
+ 			}
+
+			push @samples, "$read_set.$i"; # Sample names: read length, frame, position
+		}
+	}
+
+	# Append background
+	for my $c (@codons) {
+   	$alldat{$c}{"BG"} = shift(@background) // 0;
+	}
+	push @samples, "BG";
+
+	# Convert to column arrays
+	my %columns;   # {sample} = [values]
+	for my $s (@samples) {
+		$columns{$s} = [ map { $alldat{$_}{$s} } @codons ];
+	}
+
+	# Write correlation matrix
+	open OUT, ">$tmp/$out/$name.correlation.csv" or die "Cannot create $tmp/$out/$name.correlation.csv: $!";
+	print OUT join(",", "", @samples), "\n";  # header row
+
+	for my $s1 (@samples) {
+ 		print OUT $s1;
+		for my $s2 (@samples) {
+ 			my $c1 = $columns{$s1};
+			my $c2 = $columns{$s2};
+			my $cor = PearsonR($c1, $c2);
+			printf OUT ",%.6f", $cor;
+		}
+		print OUT "\n";
+	}
+	close OUT;
+
+	# Optional; make correlation plots
+	unless ($withoutR) {
+		SystemBash("Rscript --vanilla scripts/correlation.R $name $tmp/$out 2> /dev/null");
+	}
 }
 
 sub CorrelateToBest {
-	print "[Step 7/10] Calculating correlations between read sets...\n";
+	print "[Step 7/10] Analysing correlations between read sets...\n";
 	SystemBash("mkdir -p $tmp/correlate_to_best");
 	open OUT,">$tmp/correlate_to_best/CorrelateToBest.$name.txt";
-	open IN,"$tmp/correlation/$name.correlation.csv" or die "Cannot open $name.correlation.csv\n";
+	open IN,"$tmp/correlation/$name.correlation.csv" or die "Cannot open $tmp/correlation/$name.correlation.csv\n";
 	SystemBash("rm -f $tmp/codon_frequency/$name.selected/*.txt"); # Remove results from any previous run
 
 	# Extract all names from first row
@@ -556,8 +638,14 @@ sub FinalCodonFrequency {
 }
 
 sub Validate {
-	print "[Step 10/10] Make final figures for validation...\n";
-	SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome > /dev/null");
+	print "[Step 10/10] Make final figures for validation";
+	if ($withoutR) {
+		print " [skipped due to --withoutR]"
+	}
+	print "...\n";
+	unless ($withoutR) {
+		SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome 2> /dev/null");
+	}
 }
 
 # This function makes sure that Bash is used on Ubuntu systems.
@@ -575,6 +663,40 @@ sub VersionMessage {
 # Round x to y decimals.
 sub Round {
 	return int($_[0]*10**$_[1]+0.5)/10**$_[1];
+}
+
+# List all codons (alphabetically)
+sub GetAllCodons {
+	my @bases  = ("A","C","G","T");
+	my @codons;
+	for my $i (@bases) {
+   	for my $j (@bases) {
+      	for my $k (@bases) {
+         	push @codons, "$i$j$k";
+			}
+		}
+	}
+	return(@codons);
+}
+
+# Pearson correlation
+sub PearsonR {
+	my ($x, $y) = @_;
+	my $n = @$x;
+	return 0 if $n == 0;
+
+	my ($sumx, $sumy, $sumx2, $sumy2, $sumxy) = (0,0,0,0,0);
+	for my $i (0..$n-1) {
+		$sumx  += $x->[$i];
+		$sumy  += $y->[$i];
+		$sumx2 += $x->[$i] ** 2;
+		$sumy2 += $y->[$i] ** 2;
+		$sumxy += $x->[$i] * $y->[$i];
+	}
+	my $num = $n * $sumxy - $sumx * $sumy;
+	my $den = sqrt( ($n * $sumx2 - $sumx**2) * ($n * $sumy2 - $sumy**2) );
+	return 0 if $den == 0;
+	return $num / $den;
 }
 
 __END__

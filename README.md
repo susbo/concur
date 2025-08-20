@@ -8,7 +8,7 @@ These instructions will allow you to run CONCUR on your computer. CONCUR is a co
 
 ### Prerequisites
 
-You will need [Perl](https://www.perl.org) and [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) to be installed in your system.
+You will need [Perl](https://www.perl.org), [bedtools](http://bedtools.readthedocs.io/en/latest/content/installation.html) and [samtools](https://github.com/samtools/samtools) to be installed in your system.
 
 In addition, you need to have [R](https://cran.r-project.org) and the two R packages pheatmap and RColorBrewer installed to generate some of the figures. If you chose not to install them, you need to run CONCUR with the `--withoutR` parameter.
 
@@ -26,16 +26,16 @@ If you need to analyze another organism, you can easily do so provided you have 
 
 ### Installation
 
-Download the latest release ([v1.0](https://github.com/susbo/concur/releases)) from the release tab.
+Download the latest release ([v1.1.0](https://github.com/susbo/concur/releases)) from the release tab.
 
-The following commands will install CONCUR in your current directory:
+The following commands will unpack CONCUR in your current directory:
 ```
-tar xvfc concur-1.0.tar.gz
-cd concur-1.0
+tar xvfc concur-1.1.0.tar.gz
+cd concur-1.1.0
 ```
-Verify that the tool is working with the example in the `demo` directory.
+Please verify that the tool is working using the example in the `demo` directory. This will only take a minute or so.
 
-Alternatively, clone this repository for the latest version.
+Alternatively, clone this repository for the latest version (v.1.1.1-beta).
 
 ## Running CONCUR
 
@@ -112,7 +112,7 @@ This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`,
 
 ### Version
 
-The current version is 1.0. For other the versions, see the [releases on this repository](https://github.com/susbo/concur/releases). 
+The current version is 1.1.1-beta. For other the versions, see the [releases on this repository](https://github.com/susbo/concur/releases). 
 
 ### Authors
 
