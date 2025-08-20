@@ -112,7 +112,7 @@ This will create two files for mouse: `data/mm10.bg.txt` and `data/mm10.bed.gz`,
 
 ### Version
 
-The current version is 1.0. For other the versions, see the [releases on this repository](https://github.com/susbo/concur/releases). 
+The current version is 1.1.0. For other the versions, see the [releases on this repository](https://github.com/susbo/concur/releases). 
 
 ### Authors
 
