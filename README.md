@@ -26,12 +26,12 @@ If you need to analyze another organism, you can easily do so provided you have 
 
 ### Installation
 
-Download the latest release ([v1.0](https://github.com/susbo/concur/releases)) from the release tab.
+Download the latest release ([v1.1.0](https://github.com/susbo/concur/releases)) from the release tab.
 
 The following commands will install CONCUR in your current directory:
 ```
-tar xvfc concur-1.0.tar.gz
-cd concur-1.0
+tar xvfc concur-1.1.0.tar.gz
+cd concur-1.1.0
 ```
 Verify that the tool is working with the example in the `demo` directory.
 
