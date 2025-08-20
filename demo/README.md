@@ -9,7 +9,7 @@ should take about 1.5 minutes to run using a single core (@ 3.60GHz) and would p
 following message to the terminal:
 
 ```
-Running CONCUR v0.9
+Running CONCUR v1.1.1-beta
 
 #####  General options  #######
 Input file: demo/dom34_ncs2_elp6.YPD.rep1_100k.bam
@@ -20,26 +20,19 @@ Run without R: FALSE
 #####  Analysis options  ######
 Fragment size range tested: 20-50
 Minimum number of reads: 1000
-Outlier removal filter [2.2.3]: 0.5
+Outlier removal filter: 0.5
 ###############################
 [Step 1/10] Mapping genomic reads to transcripts...
 [Step 2/10] Calculating periodicity...
 [Step 3/10] Predicting offset per read set...
+ .. Read sets (length-frame) candidates selected: 29-0 29-1 29-2 30-0 30-1 30-2 31-0 31-1 31-2 32-0 32-1 32-2 33-1
 [Step 4/10] Calculating codon frequency per read set...
 [Step 5/10] Calculating codon frequency (step 2) per read set...
-[Step 6/10] Plotting codon correlations per read set...
-null device 
-          1 
-null device 
-          1 
-[Step 7/10] Calculating correlations between read sets...
-[Step 8/10] Plotting codon correlations per read set...
-null device 
-          1 
-null device 
-          1 
+[Step 6/10] Calculating codon correlations per read set...
+[Step 7/10] Analysing correlations between read sets...
+ .. Read sets (length-frame) excluded: 29-1 32-1 32-2 33-1
+ .. Read sets (length-frame) kept: 29-0 29-2 30-0 30-1 30-2 31-0 31-1 31-2 32-0
+[Step 8/10] Calculating codon correlations per read set...
 [Step 9/10] Calculate final codon frequency...
 [Step 10/10] Make final figures for validation...
-null device 
-          1 
-
+```

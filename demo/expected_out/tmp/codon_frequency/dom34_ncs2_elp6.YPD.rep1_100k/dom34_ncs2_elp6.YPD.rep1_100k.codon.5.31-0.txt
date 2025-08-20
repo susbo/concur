@@ -1,64 +1,64 @@
-   3654 AAA
-   5440 AAC
-   6247 AAG
-   2824 AAT
+   3649 AAA
+   5442 AAC
+   6241 AAG
+   2818 AAT
    1661 ACA
-   3634 ACC
-    432 ACG
-   3906 ACT
-   3769 AGA
-    304 AGC
-    209 AGG
-    536 AGT
+   3635 ACC
+    434 ACG
+   3907 ACT
+   3767 AGA
+    303 AGC
+    208 AGG
+    539 AGT
     397 ATA
-   4050 ATC
-  11740 ATG
-   3942 ATT
-   3903 CAA
-   2453 CAC
-    823 CAG
+   4053 ATC
+  11719 ATG
+   3934 ATT
+   3898 CAA
+   2456 CAC
+    819 CAG
    1418 CAT
-   5516 CCA
-    588 CCC
-    384 CCG
-   2481 CCT
+   5514 CCA
+    590 CCC
+    386 CCG
+   2475 CCT
      45 CGA
-     92 CGC
-     61 CGG
-   1257 CGT
+     94 CGC
+     60 CGG
+   1258 CGT
     779 CTA
     216 CTC
-    518 CTG
-    748 CTT
-   4518 GAA
-   2697 GAC
+    517 CTG
+    746 CTT
+   4519 GAA
+   2698 GAC
     831 GAG
-   3977 GAT
-    741 GCA
-   2830 GCC
+   3976 GAT
+    743 GCA
+   2831 GCC
     179 GCG
-   5869 GCT
+   5872 GCT
     430 GGA
-    565 GGC
-    292 GGG
-   5411 GGT
+    566 GGC
+    293 GGG
+   5413 GGT
     422 GTA
-   1667 GTC
-    603 GTG
-   2495 GTT
-     61 TAA
-   1778 TAC
+   1664 GTC
+    601 GTG
+   2491 GTT
+     58 TAA
+   1776 TAC
       4 TAG
-    860 TAT
-   1139 TCA
-   2791 TCC
-    372 TCG
-   5057 TCT
-      6 TGA
-    284 TGC
-    512 TGG
-    935 TGT
-   2044 TTA
-   2766 TTC
+    864 TAT
+   1143 TCA
+   2792 TCC
+    371 TCG
+   5059 TCT
+      5 TGA
+    280 TGC
+    513 TGG
+    937 TGT
+   2049 TTA
+   2764 TTC
    5165 TTG
-   1412 TTT
+   1411 TTT

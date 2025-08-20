@@ -1,64 +1,64 @@
-   3462 AAA
+   3459 AAA
    4696 AAC
-   6141 AAG
-   2549 AAT
+   6142 AAG
+   2533 AAT
    1395 ACA
    2905 ACC
     460 ACG
-   3172 ACT
-   2956 AGA
+   3174 ACT
+   2958 AGA
     308 AGC
     183 AGG
     451 AGT
     400 ATA
-   3233 ATC
+   3235 ATC
   11336 ATG
    3175 ATT
-   2996 CAA
-   1753 CAC
-    705 CAG
-   1160 CAT
+   2998 CAA
+   1756 CAC
+    704 CAG
+   1164 CAT
    4491 CCA
     443 CCC
     450 CCG
    2197 CCT
      36 CGA
-     67 CGC
+     65 CGC
      99 CGG
-   1271 CGT
-    663 CTA
-    189 CTC
-    543 CTG
+   1270 CGT
+    662 CTA
+    191 CTC
+    542 CTG
     549 CTT
-   4396 GAA
-   2317 GAC
-    841 GAG
-   3641 GAT
-    619 GCA
+   4393 GAA
+   2314 GAC
+    840 GAG
+   3642 GAT
+    622 GCA
    2505 GCC
     130 GCG
-   5147 GCT
+   5148 GCT
     467 GGA
-    584 GGC
+    583 GGC
     334 GGG
-   5223 GGT
+   5219 GGT
     301 GTA
-   1449 GTC
-    599 GTG
-   2184 GTT
-     23 TAA
-   1588 TAC
+   1448 GTC
+    601 GTG
+   2187 GTT
+     26 TAA
+   1587 TAC
       4 TAG
-    717 TAT
-    927 TCA
-   2249 TCC
+    719 TAT
+    926 TCA
+   2246 TCC
     389 TCG
    4526 TCT
-      6 TGA
-    207 TGC
-    511 TGG
-    816 TGT
-   1901 TTA
-   2616 TTC
-   4716 TTG
+      4 TGA
+    200 TGC
+    509 TGG
+    815 TGT
+   1906 TTA
+   2618 TTC
+   4714 TTG
    1327 TTT
