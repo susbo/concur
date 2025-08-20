@@ -419,7 +419,7 @@ sub CalculateCorrelations {
 
 	# Optional; make correlation plots
 	unless ($withoutR) {
-		SystemBash("Rscript --vanilla scripts/correlation.R $name $tmp/$out 2> /dev/null");
+		SystemBash("Rscript --vanilla scripts/correlation.R $name $tmp/$out > /dev/null");
 	}
 }
 
@@ -644,7 +644,7 @@ sub Validate {
 	}
 	print "...\n";
 	unless ($withoutR) {
-		SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome 2> /dev/null");
+		SystemBash("Rscript --vanilla scripts/validate.R $out $name $genome > /dev/null");
 	}
 }
 
