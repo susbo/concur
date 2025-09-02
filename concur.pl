@@ -625,7 +625,7 @@ sub FinalCodonFrequency {
 
 	open OUT,">$out/$name.codons.txt" or die ("Cannot open outfile\n");
 	print OUT "Codon";
-	foreach my $pos (sort keys %{ $counts{"AAA"} }) { print OUT "\t$pos";	}
+	foreach my $pos (1..9) { print OUT "\t$pos";	}
 	print OUT "\n";
 	foreach my $codon (sort keys %counts) {
 		print OUT "$codon";
